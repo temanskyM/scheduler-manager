@@ -2,17 +2,18 @@ package com.example.service;
 
 import com.example.db.Subject;
 import com.example.db.SubjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class SubjectService {
     
-    @Autowired
-    private SubjectRepository subjectRepository;
+    private final SubjectRepository subjectRepository;
     
     public List<Subject> findAll() {
         return subjectRepository.findAll();

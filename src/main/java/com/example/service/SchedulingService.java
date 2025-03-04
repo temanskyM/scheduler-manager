@@ -16,22 +16,18 @@ import com.example.db.Subject;
 import com.example.db.Teacher;
 import com.example.dto.ScheduledLesson;
 import com.example.dto.SchedulingResponseDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class SchedulingService {
-    @Autowired
-    private StudentService studentService;
-    @Autowired
-    private TeacherService teacherService;
-    @Autowired
-    private SubjectService subjectService;
-    @Autowired
-    private ClassroomService classroomService;
-    @Autowired
-    private LessonRepository lessonRepository;
+    private final StudentService studentService;
+    private final TeacherService teacherService;
+    private final SubjectService subjectService;
+    private final ClassroomService classroomService;
+    private final LessonRepository lessonRepository;
 
     @Transactional
     public SchedulingResponseDto generateSchedule() {

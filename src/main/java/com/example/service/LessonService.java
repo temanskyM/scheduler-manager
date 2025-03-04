@@ -5,18 +5,19 @@ import com.example.db.LessonRepository;
 import com.example.db.Student;
 import com.example.dto.StudentScheduleDto;
 import com.example.dto.TeacherScheduleDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LessonService {
     
-    @Autowired
-    private LessonRepository lessonRepository;
+    private final LessonRepository lessonRepository;
     
     public List<Lesson> findAll() {
         return lessonRepository.findAll();

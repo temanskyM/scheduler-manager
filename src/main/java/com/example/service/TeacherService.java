@@ -2,17 +2,18 @@ package com.example.service;
 
 import com.example.db.Teacher;
 import com.example.db.TeacherRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TeacherService {
     
-    @Autowired
-    private TeacherRepository teacherRepository;
+    private final TeacherRepository teacherRepository;
     
     public List<Teacher> findAll() {
         return teacherRepository.findAll();
