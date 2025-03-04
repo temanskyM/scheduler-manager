@@ -20,6 +20,7 @@ import com.example.db.Teacher;
 import com.example.dto.ScheduledLesson;
 import com.example.dto.StudentScheduleDto;
 import com.example.dto.SchedulingResponseDto;
+import com.example.dto.TimeSlot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -143,10 +144,12 @@ public class SchedulingService {
                         continue;
                     }
 
+                    TimeSlot timeSlot = new TimeSlot(lessonStart, lessonEnd);
+
                     // Find available teachers and classrooms for this time slot
-                    List<Teacher> availableTeachers = findAvailableTeachers(teachers, schedule, lessonStart, lessonEnd);
+                    List<Teacher> availableTeachers = findAvailableTeachers(teachers, schedule, timeSlot);
                     List<Classroom> availableClassrooms =
-                            findAvailableClassrooms(classrooms, schedule, lessonStart, lessonEnd);
+                            findAvailableClassrooms(classrooms, schedule, timeSlot);
 
                     // Try to schedule lessons for each teacher
                     for (Teacher teacher : availableTeachers) {
@@ -179,21 +182,21 @@ public class SchedulingService {
 
                             // Find students who need this subject
                             List<Student> studentsForSubject = findStudentsForSubject(studentsForTeacher, subjectId,
-                                    schedule, lessonStart, lessonEnd, studentSubjectRequirements);
+                                    schedule, timeSlot, studentSubjectRequirements);
                             if (studentsForSubject.isEmpty()) {
                                 continue;
                             }
 
                             // Find an available classroom
                             Optional<Classroom> availableClassroom = findAvailableClassroomForSubject(
-                                    availableClassrooms, subjectId, schedule, lessonStart, lessonEnd);
+                                    availableClassrooms, subjectId, schedule, timeSlot);
                             if (availableClassroom.isEmpty()) {
                                 continue;
                             }
 
                             // Create and add the scheduled lesson
                             ScheduledLesson scheduledLesson = createScheduledLesson(
-                                    lessonStart, lessonEnd, availableClassroom.get(), teacher, subject,
+                                    timeSlot, availableClassroom.get(), teacher, subject,
                                     studentsForSubject);
                             schedule.add(scheduledLesson);
 
@@ -309,23 +312,31 @@ public class SchedulingService {
     }
 
     private List<Teacher> findAvailableTeachers(List<Teacher> teachers, List<ScheduledLesson> schedule,
-            LocalDateTime start, LocalDateTime end) {
+            TimeSlot timeSlot) {
+        // Create TimeSlot objects for all scheduled lessons once
+        Map<Long, List<TimeSlot>> teacherTimeSlots = schedule.stream()
+                .filter(lesson -> lesson.getTeacherId() != null)
+                .collect(Collectors.groupingBy(
+                    ScheduledLesson::getTeacherId,
+                    Collectors.mapping(
+                        lesson -> new TimeSlot(lesson.getDateStart(), lesson.getDateEnd()),
+                        Collectors.toList()
+                    )
+                ));
+
         return teachers.stream()
                 .filter(teacher -> {
                     // Check if teacher is already scheduled for this time
-                    boolean isTeacherScheduled = schedule.stream()
-                            .filter(lesson -> lesson.getTeacherId().equals(teacher.getId()))
-                            .anyMatch(lesson -> isTimeOverlap(lesson.getDateStart(), lesson.getDateEnd(), start, end));
-                    
-                    if (isTeacherScheduled) {
+                    List<TimeSlot> teacherSlots = teacherTimeSlots.get(teacher.getId());
+                    if (teacherSlots != null && teacherSlots.stream().anyMatch(slot -> timeSlot.overlaps(slot))) {
                         return false;
                     }
 
                     // Check if lesson is within teacher's working hours
                     LocalTime teacherStart = teacher.getTimeStart();
                     LocalTime teacherEnd = teacher.getTimeEnd();
-                    LocalTime lessonStart = start.toLocalTime();
-                    LocalTime lessonEnd = end.toLocalTime();
+                    LocalTime lessonStart = timeSlot.getDateStart().toLocalTime();
+                    LocalTime lessonEnd = timeSlot.getDateEnd().toLocalTime();
 
                     return !lessonStart.isBefore(teacherStart) && !lessonEnd.isAfter(teacherEnd);
                 })
@@ -333,11 +344,24 @@ public class SchedulingService {
     }
 
     private List<Classroom> findAvailableClassrooms(List<Classroom> classrooms, List<ScheduledLesson> schedule,
-            LocalDateTime start, LocalDateTime end) {
+            TimeSlot timeSlot) {
+        // Create TimeSlot objects for all scheduled lessons once
+        Map<Long, List<TimeSlot>> classroomTimeSlots = schedule.stream()
+                .filter(lesson -> lesson.getClassroomId() != null)
+                .collect(Collectors.groupingBy(
+                    ScheduledLesson::getClassroomId,
+                    Collectors.mapping(
+                        lesson -> new TimeSlot(lesson.getDateStart(), lesson.getDateEnd()),
+                        Collectors.toList()
+                    )
+                ));
+
         return classrooms.stream()
-                .filter(classroom -> schedule.stream()
-                        .filter(lesson -> lesson.getClassroomId().equals(classroom.getId()))
-                        .noneMatch(lesson -> isTimeOverlap(lesson.getDateStart(), lesson.getDateEnd(), start, end)))
+                .filter(classroom -> {
+                    List<TimeSlot> classroomSlots = classroomTimeSlots.get(classroom.getId());
+                    return classroomSlots == null || 
+                            classroomSlots.stream().noneMatch(slot -> timeSlot.overlaps(slot));
+                })
                 .collect(Collectors.toList());
     }
 
@@ -352,7 +376,7 @@ public class SchedulingService {
     }
 
     private List<Student> findStudentsForSubject(List<Student> students, Long subjectId,
-            List<ScheduledLesson> schedule, LocalDateTime start, LocalDateTime end,
+            List<ScheduledLesson> schedule, TimeSlot timeSlot,
             Map<Long, Map<Long, Integer>> studentSubjectRequirements) {
         // Get the subject to check its level
         Subject subject = subjectService.findById(subjectId)
@@ -361,11 +385,27 @@ public class SchedulingService {
         // Check if subject with same level is already scheduled 4 times today
         long lessonsToday = schedule.stream()
                 .filter(lesson -> lesson.getSubjectId().equals(subjectId) &&
-                        lesson.getDateStart().toLocalDate().equals(start.toLocalDate()))
+                        lesson.getDateStart().toLocalDate().equals(timeSlot.getDateStart().toLocalDate()))
                 .count();
         if (lessonsToday >= 4) {
             return List.of(); // Return empty list if subject is already scheduled 4 times today
         }
+
+        // Create TimeSlot objects for all scheduled lessons once
+        Map<Long, List<TimeSlot>> studentTimeSlots = schedule.stream()
+                .filter(lesson -> lesson.getStudentIds() != null)
+                .flatMap(lesson -> lesson.getStudentIds().stream()
+                        .map(studentId -> Map.entry(studentId, new TimeSlot(lesson.getDateStart(), lesson.getDateEnd()))))
+                .collect(Collectors.groupingBy(
+                    Map.Entry::getKey,
+                    Collectors.mapping(Map.Entry::getValue, Collectors.toList())
+                ));
+
+        // Create TimeSlot objects for lessons with different subjects at the same time
+        List<TimeSlot> conflictingTimeSlots = schedule.stream()
+                .filter(lesson -> !lesson.getSubjectId().equals(subjectId))
+                .map(lesson -> new TimeSlot(lesson.getDateStart(), lesson.getDateEnd()))
+                .collect(Collectors.toList());
 
         return students.stream()
                 .filter(student -> {
@@ -375,21 +415,13 @@ public class SchedulingService {
                     }
 
                     // Check if student is already scheduled for this time
-                    boolean isStudentAvailable = schedule.stream()
-                            .filter(lesson -> lesson.getStudentIds().contains(student.getId()))
-                            .noneMatch(lesson -> isTimeOverlap(lesson.getDateStart(), lesson.getDateEnd(), start, end));
+                    List<TimeSlot> studentSlots = studentTimeSlots.get(student.getId());
+                    boolean isStudentAvailable = studentSlots == null || 
+                            studentSlots.stream().noneMatch(slot -> timeSlot.overlaps(slot));
 
                     // Check if any other student from the same level is scheduled for a different subject at this time
-                    boolean isClassAvailable = schedule.stream()
-                            .filter(lesson -> isTimeOverlap(lesson.getDateStart(), lesson.getDateEnd(), start, end))
-                            .filter(lesson -> !lesson.getSubjectId().equals(subjectId))
-                            .noneMatch(lesson -> {
-                                List<Student> lessonStudents = students.stream()
-                                        .filter(it->lesson.getStudentIds().contains(it.getId()))
-                                        .toList();
-                                return lessonStudents.stream()
-                                        .anyMatch(s -> s.getLevel().equals(student.getLevel()));
-                            });
+                    boolean isClassAvailable = conflictingTimeSlots.stream()
+                            .noneMatch(slot -> timeSlot.overlaps(slot));
 
                     // Check if student needs more lessons for this subject
                     Map<Long, Integer> studentRequirements = studentSubjectRequirements.get(student.getId());
@@ -433,32 +465,51 @@ public class SchedulingService {
     }
 
     private Optional<Classroom> findAvailableClassroomForSubject(List<Classroom> classrooms, Long subjectId,
-            List<ScheduledLesson> schedule,
-            LocalDateTime start, LocalDateTime end) {
+            List<ScheduledLesson> schedule, TimeSlot timeSlot) {
+        // Create TimeSlot objects for all scheduled lessons once
+        Map<Long, List<TimeSlot>> classroomTimeSlots = schedule.stream()
+                .filter(lesson -> lesson.getClassroomId() != null)
+                .collect(Collectors.groupingBy(
+                    ScheduledLesson::getClassroomId,
+                    Collectors.mapping(
+                        lesson -> new TimeSlot(lesson.getDateStart(), lesson.getDateEnd()),
+                        Collectors.toList()
+                    )
+                ));
+
+        Map<Long, List<TimeSlot>> subjectTimeSlots = schedule.stream()
+                .filter(lesson -> lesson.getSubjectId() != null && lesson.getSubjectId().equals(subjectId))
+                .collect(Collectors.groupingBy(
+                    ScheduledLesson::getClassroomId,
+                    Collectors.mapping(
+                        lesson -> new TimeSlot(lesson.getDateStart(), lesson.getDateEnd()),
+                        Collectors.toList()
+                    )
+                ));
+
         return classrooms.stream()
                 .filter(classroom -> {
                     // Check if classroom is available for this time
-                    boolean isClassroomAvailable = schedule.stream()
-                            .filter(lesson -> lesson.getClassroomId().equals(classroom.getId()))
-                            .noneMatch(lesson -> isTimeOverlap(lesson.getDateStart(), lesson.getDateEnd(), start, end));
+                    List<TimeSlot> classroomSlots = classroomTimeSlots.get(classroom.getId());
+                    boolean isClassroomAvailable = classroomSlots == null || 
+                            classroomSlots.stream().noneMatch(slot -> timeSlot.overlaps(slot));
 
                     // Check if subject is already scheduled in this classroom for this time
-                    boolean isSubjectAvailable = schedule.stream()
-                            .filter(lesson -> lesson.getClassroomId().equals(classroom.getId()))
-                            .filter(lesson -> lesson.getSubjectId().equals(subjectId))
-                            .noneMatch(lesson -> isTimeOverlap(lesson.getDateStart(), lesson.getDateEnd(), start, end));
+                    List<TimeSlot> subjectSlots = subjectTimeSlots.get(classroom.getId());
+                    boolean isSubjectAvailable = subjectSlots == null || 
+                            subjectSlots.stream().noneMatch(slot -> timeSlot.overlaps(slot));
 
                     return isClassroomAvailable && isSubjectAvailable;
                 })
                 .findFirst();
     }
 
-    private ScheduledLesson createScheduledLesson(LocalDateTime start, LocalDateTime end,
+    private ScheduledLesson createScheduledLesson(TimeSlot timeSlot,
             Classroom classroom, Teacher teacher,
             Subject subject, List<Student> students) {
         ScheduledLesson lesson = new ScheduledLesson();
-        lesson.setDateStart(start);
-        lesson.setDateEnd(end);
+        lesson.setDateStart(timeSlot.getDateStart());
+        lesson.setDateEnd(timeSlot.getDateEnd());
         lesson.setClassroomId(classroom.getId());
         lesson.setClassroomName(classroom.getName());
         lesson.setTeacherId(teacher.getId());
@@ -484,15 +535,5 @@ public class SchedulingService {
                 }
             }
         }
-    }
-
-    private boolean isTimeOverlap(LocalDateTime start1, LocalDateTime end1,
-            LocalDateTime start2, LocalDateTime end2) {
-        // Check for exact start time match
-        if (start1.equals(start2)) {
-            return true;
-        }
-        // Check for overlap
-        return !start1.isAfter(end2) && !start2.isAfter(end1);
     }
 } 
