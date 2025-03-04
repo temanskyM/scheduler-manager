@@ -25,10 +25,10 @@ public class ScheduleBuilder {
     private static final int LESSONS_PER_DAY = 10;
     private static final LocalTime SCHOOL_START_TIME = LocalTime.of(8, 0);
     private static final LocalTime SCHOOL_END_TIME = LocalTime.of(17, 0);
+    public static final int MAX_LESSON_PER_DAY = 4;
 
     private final List<Student> students;
     private final List<Teacher> teachers;
-    private final List<Subject> subjects;
     private final Map<Long, Subject> subjectById;
     private final List<Classroom> classrooms;
     private final Map<Long, Set<Long>> teacherSubjectMap;
@@ -40,7 +40,6 @@ public class ScheduleBuilder {
             List<Classroom> classrooms) {
         this.students = students;
         this.teachers = teachers;
-        this.subjects = subjects;
         this.subjectById = subjects.stream().collect(Collectors.toMap(Subject::getId, it -> it));
         this.classrooms = classrooms;
         this.teacherSubjectMap = createTeacherSubjectMap();
@@ -93,7 +92,13 @@ public class ScheduleBuilder {
                     List<Classroom> availableClassrooms = findAvailableClassrooms(timeSlot);
 
                     for (Teacher teacher : availableTeachers) {
-                        if (tryScheduleLessonForTeacher(teacher, timeSlot, availableClassrooms, studentsNeedingLessons)) {
+                        Optional<ScheduledLesson> scheduledLesson =
+                                attemptToScheduleLesson(teacher, timeSlot, availableClassrooms, studentsNeedingLessons);
+                        if (scheduledLesson.isPresent()) {
+                            ScheduledLesson lesson = scheduledLesson.get();
+                            updateStudentSubjectRequirements(lesson.getStudentIds(), lesson.getSubjectId());
+                            schedule.add(lesson);
+
                             addedAnyLesson = true;
                             break;
                         }
@@ -111,65 +116,6 @@ public class ScheduleBuilder {
         return schedule;
     }
 
-    private TimeSlot createTimeSlot(LocalDateTime currentDay, int slot) {
-        LocalDateTime lessonStart = currentDay
-                .with(SCHOOL_START_TIME)
-                .plusMinutes(slot * TOTAL_SLOT_DURATION);
-        LocalDateTime lessonEnd = lessonStart.plusMinutes(LESSON_DURATION_MINUTES);
-
-        if (lessonEnd.toLocalTime().isAfter(SCHOOL_END_TIME)) {
-            return null;
-        }
-
-        return new TimeSlot(lessonStart, lessonEnd);
-    }
-
-    private boolean tryScheduleLessonForTeacher(Teacher teacher, TimeSlot timeSlot, 
-            List<Classroom> availableClassrooms, Map<Long, List<Long>> studentsNeedingLessons) {
-        Set<Long> teacherSubjects = teacherSubjectMap.get(teacher.getId());
-        if (teacherSubjects == null) {
-            return false;
-        }
-
-        List<Student> studentsForTeacher = findStudentsForTeacher(teacherSubjects, studentsNeedingLessons);
-        if (studentsForTeacher.isEmpty()) {
-            return false;
-        }
-
-        for (Long subjectId : teacherSubjects) {
-            if (tryScheduleLessonForSubject(teacher, subjectId, timeSlot, availableClassrooms, studentsForTeacher)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean tryScheduleLessonForSubject(Teacher teacher, Long subjectId, TimeSlot timeSlot,
-            List<Classroom> availableClassrooms, List<Student> studentsForTeacher) {
-        Subject subject = subjectById.get(subjectId);
-        if (subject == null) {
-            return false;
-        }
-
-        List<Student> studentsForSubject = findStudentsForSubject(studentsForTeacher, subjectId, timeSlot);
-        if (studentsForSubject.isEmpty()) {
-            return false;
-        }
-
-        Optional<Classroom> availableClassroom = findAvailableClassroomForSubject(availableClassrooms, subjectId, timeSlot);
-        if (availableClassroom.isEmpty()) {
-            return false;
-        }
-
-        ScheduledLesson scheduledLesson = createScheduledLesson(timeSlot, availableClassroom.get(), teacher, subject,
-                studentsForSubject);
-        schedule.add(scheduledLesson);
-
-        updateStudentSubjectRequirements(studentsForSubject, subjectId);
-        return true;
-    }
-
     private Map<Long, List<Long>> findStudentsNeedingLessons() {
         Map<Long, List<Long>> studentsNeedingLessons = new HashMap<>();
         for (Map.Entry<Long, Map<Long, Integer>> studentEntry : studentSubjectRequirements.entrySet()) {
@@ -183,6 +129,19 @@ public class ScheduleBuilder {
             }
         }
         return studentsNeedingLessons;
+    }
+
+    private TimeSlot createTimeSlot(LocalDateTime currentDay, int slot) {
+        LocalDateTime lessonStart = currentDay
+                .with(SCHOOL_START_TIME)
+                .plusMinutes((long) slot * TOTAL_SLOT_DURATION);
+        LocalDateTime lessonEnd = lessonStart.plusMinutes(LESSON_DURATION_MINUTES);
+
+        if (lessonEnd.toLocalTime().isAfter(SCHOOL_END_TIME)) {
+            return null;
+        }
+
+        return new TimeSlot(lessonStart, lessonEnd);
     }
 
     private List<Teacher> findAvailableTeachers(TimeSlot timeSlot) {
@@ -233,6 +192,26 @@ public class ScheduleBuilder {
                 .collect(Collectors.toList());
     }
 
+    private Optional<ScheduledLesson> attemptToScheduleLesson(Teacher teacher, TimeSlot timeSlot,
+            List<Classroom> availableClassrooms, Map<Long, List<Long>> studentsNeedingLessons) {
+        Set<Long> teacherSubjects = teacherSubjectMap.get(teacher.getId());
+        if (teacherSubjects == null) {
+            return Optional.empty();
+        }
+
+        List<Student> studentsForTeacher = findStudentsForTeacher(teacherSubjects, studentsNeedingLessons);
+        if (studentsForTeacher.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return teacherSubjects.stream()
+                .map(subjectId -> attemptToScheduleLessonForSubject(teacher, subjectId, timeSlot, availableClassrooms,
+                        studentsForTeacher))
+                .filter(Optional::isPresent)
+                .findFirst()
+                .orElse(Optional.empty());
+    }
+
     private List<Student> findStudentsForTeacher(Set<Long> teacherSubjects,
             Map<Long, List<Long>> studentsNeedingLessons) {
         return students.stream()
@@ -241,6 +220,22 @@ public class ScheduleBuilder {
                     return neededSubjects != null && neededSubjects.stream().anyMatch(teacherSubjects::contains);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private Optional<ScheduledLesson> attemptToScheduleLessonForSubject(Teacher teacher, Long subjectId,
+            TimeSlot timeSlot,
+            List<Classroom> availableClassrooms, List<Student> studentsForTeacher) {
+        return Optional.ofNullable(subjectById.get(subjectId))
+                .flatMap(subject -> {
+                    List<Student> studentsForSubject = findStudentsForSubject(studentsForTeacher, subjectId, timeSlot);
+                    if (studentsForSubject.isEmpty()) {
+                        return Optional.empty();
+                    }
+
+                    return findAvailableClassroomForSubject(availableClassrooms, subjectId, timeSlot)
+                            .map(classroom ->
+                                    buildScheduledLesson(timeSlot, classroom, teacher, subject, studentsForSubject));
+                });
     }
 
     private List<Student> findStudentsForSubject(List<Student> students, Long subjectId, TimeSlot timeSlot) {
@@ -253,7 +248,7 @@ public class ScheduleBuilder {
                 .filter(lesson -> lesson.getSubjectId().equals(subjectId) &&
                         lesson.getDateStart().toLocalDate().equals(timeSlot.getDateStart().toLocalDate()))
                 .count();
-        if (lessonsToday >= 4) {
+        if (lessonsToday >= MAX_LESSON_PER_DAY) {
             return List.of();
         }
 
@@ -300,34 +295,6 @@ public class ScheduleBuilder {
                 .collect(Collectors.toList());
     }
 
-    private boolean hasTooManyConsecutiveLessons(Student student, Long subjectId) {
-        List<ScheduledLesson> studentLessons = schedule.stream()
-                .filter(lesson -> lesson.getStudentIds().contains(student.getId()) &&
-                        lesson.getSubjectId().equals(subjectId))
-                .sorted((l1, l2) -> l2.getDateStart().compareTo(l1.getDateStart()))
-                .toList();
-
-        if (!studentLessons.isEmpty()) {
-            int consecutiveLessons = 1;
-            LocalDateTime currentTime = studentLessons.get(0).getDateStart();
-
-            for (int i = 1; i < studentLessons.size(); i++) {
-                LocalDateTime previousTime = studentLessons.get(i).getDateStart();
-                if (currentTime.minusMinutes(TOTAL_SLOT_DURATION).equals(previousTime)) {
-                    consecutiveLessons++;
-                    if (consecutiveLessons >= 4) {
-                        return true;
-                    }
-                } else {
-                    consecutiveLessons = 1;
-                }
-                currentTime = previousTime;
-            }
-        }
-
-        return false;
-    }
-
     private Optional<Classroom> findAvailableClassroomForSubject(List<Classroom> classrooms, Long subjectId,
             TimeSlot timeSlot) {
         Map<Long, List<TimeSlot>> classroomTimeSlots = schedule.stream()
@@ -365,7 +332,7 @@ public class ScheduleBuilder {
                 .findFirst();
     }
 
-    private ScheduledLesson createScheduledLesson(TimeSlot timeSlot,
+    private ScheduledLesson buildScheduledLesson(TimeSlot timeSlot,
             Classroom classroom, Teacher teacher,
             Subject subject, List<Student> students) {
         ScheduledLesson lesson = new ScheduledLesson();
@@ -385,9 +352,37 @@ public class ScheduleBuilder {
         return lesson;
     }
 
-    private void updateStudentSubjectRequirements(List<Student> students, Long subjectId) {
-        for (Student student : students) {
-            Map<Long, Integer> studentRequirements = studentSubjectRequirements.get(student.getId());
+    private boolean hasTooManyConsecutiveLessons(Student student, Long subjectId) {
+        List<ScheduledLesson> studentLessons = schedule.stream()
+                .filter(lesson -> lesson.getStudentIds().contains(student.getId()) &&
+                        lesson.getSubjectId().equals(subjectId))
+                .sorted((l1, l2) -> l2.getDateStart().compareTo(l1.getDateStart()))
+                .toList();
+
+        if (!studentLessons.isEmpty()) {
+            int consecutiveLessons = 1;
+            LocalDateTime currentTime = studentLessons.get(0).getDateStart();
+
+            for (int i = 1; i < studentLessons.size(); i++) {
+                LocalDateTime previousTime = studentLessons.get(i).getDateStart();
+                if (currentTime.minusMinutes(TOTAL_SLOT_DURATION).equals(previousTime)) {
+                    consecutiveLessons++;
+                    if (consecutiveLessons >= MAX_LESSON_PER_DAY) {
+                        return true;
+                    }
+                } else {
+                    consecutiveLessons = 1;
+                }
+                currentTime = previousTime;
+            }
+        }
+
+        return false;
+    }
+
+    private void updateStudentSubjectRequirements(List<Long> studentIds, Long subjectId) {
+        for (Long studentId : studentIds) {
+            Map<Long, Integer> studentRequirements = studentSubjectRequirements.get(studentId);
             if (studentRequirements != null) {
                 Integer currentRequired = studentRequirements.get(subjectId);
                 if (currentRequired != null && currentRequired > 0) {
