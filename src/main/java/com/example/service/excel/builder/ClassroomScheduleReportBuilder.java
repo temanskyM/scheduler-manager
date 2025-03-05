@@ -1,8 +1,7 @@
 package com.example.service.excel.builder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,115 +11,72 @@ import com.example.dto.ScheduledLesson;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.util.CellRangeAddress;
 
 public class ClassroomScheduleReportBuilder extends AbstractExcelReportBuilder {
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
     public byte[] buildReport(List<ScheduledLesson> schedule, List<Classroom> classrooms) {
-        fillSheet(schedule, classrooms);
+        // Group schedule by classroom
+        Map<Long, List<ScheduledLesson>> scheduleByClassroom = schedule.stream()
+                .collect(Collectors.groupingBy(ScheduledLesson::getClassroomId));
+
+        // Create a sheet for each classroom
+        for (Classroom classroom : classrooms) {
+            createClassroomSheet(classroom, scheduleByClassroom.getOrDefault(classroom.getId(), List.of()));
+        }
 
         try {
-            return writeToByteArray(workbook);
+            return writeToByteArray();
         } catch (IOException e) {
             throw new RuntimeException("Failed to generate classroom schedule report", e);
         }
     }
 
-    private void fillSheet(List<ScheduledLesson> schedule, List<Classroom> classrooms) {
-        Sheet sheet = workbook.createSheet("Classroom Schedule");
-        // Group schedule by classroom
-        Map<Long, List<ScheduledLesson>> scheduleByClassroom = schedule.stream()
-                .collect(Collectors.groupingBy(ScheduledLesson::getClassroomId));
+    private void createClassroomSheet(Classroom classroom, List<ScheduledLesson> lessons) {
+        Sheet sheet = workbook.createSheet(classroom.getName());
 
-        int rowNum = 0;
+        // Create week header
+        LocalDateTime weekStart = lessons.stream()
+                .map(ScheduledLesson::getDateStart)
+                .min(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.now());
+        createWeekHeader(sheet, weekStart, 0, 5);
 
-        // Create header row
-        Row headerRow = sheet.createRow(rowNum++);
-        String[] headers = {"Date", "Time", "Subject", "Level", "Teacher", "Students"};
-        createHeaderRow(headerRow, headers);
+        // Create day headers
+        createDayHeaders(sheet, weekStart, 1);
 
-        // Add data for each classroom
-        for (Classroom classroom : classrooms) {
-            rowNum = addClassroomData(sheet, classroom, scheduleByClassroom.get(classroom.getId()), rowNum);
+        // Create time slots
+        createTimeSlots(sheet, 2);
+
+        // Add lessons
+        for (ScheduledLesson lesson : lessons) {
+            addLessonToSheet(sheet, lesson);
         }
 
         // Auto-size columns
-        autoSizeColumns(sheet, headers.length);
+        autoSizeColumns(sheet, 6);
     }
 
-    private void createHeaderRow(Row headerRow, String[] headers) {
-        for (int i = 0; i < headers.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            cell.setCellStyle(headerStyle);
-        }
+    private void addLessonToSheet(Sheet sheet, ScheduledLesson lesson) {
+        // Calculate day and time slot
+        int day = lesson.getDateStart().getDayOfWeek().getValue(); // Monday = 0
+        int timeSlot = calculateTimeSlot(lesson.getDateStart());
+
+        // Create lesson cell
+        Row row = sheet.getRow(timeSlot + 2); // +2 because of week header and day headers
+        Cell cell = row.createCell(day); // +1 because of time column
+        cell.setCellValue(formatLessonInfo(lesson));
+        cell.setCellStyle(dataStyle);
     }
 
-    private int addClassroomData(Sheet sheet, Classroom classroom, List<ScheduledLesson> classroomLessons, int rowNum) {
-        // Add classroom name as a merged cell
-        Row classroomRow = sheet.createRow(rowNum++);
-        Cell classroomCell = classroomRow.createCell(0);
-        classroomCell.setCellValue(classroom.getName());
-        classroomCell.setCellStyle(headerStyle);
-        sheet.addMergedRegion(new CellRangeAddress(rowNum - 1, rowNum - 1, 0, 5));
-
-        // Add classroom's lessons
-        if (classroomLessons != null) {
-            for (ScheduledLesson lesson : classroomLessons) {
-                Row lessonRow = sheet.createRow(rowNum++);
-                addLessonData(lessonRow, lesson);
-            }
-        }
-        return rowNum + 1; // Add empty row between classrooms
+    private int calculateTimeSlot(LocalDateTime lessonTime) {
+        return ((lessonTime.getHour() * 60 + lessonTime.getMinute() -
+                (SCHOOL_START_TIME.getHour() * 60 + SCHOOL_START_TIME.getMinute())) / TOTAL_SLOT_DURATION);
     }
 
-    private void addLessonData(Row row, ScheduledLesson lesson) {
-        int col = 0;
-
-        // Date
-        Cell dateCell = row.createCell(col++);
-        dateCell.setCellValue(lesson.getDateStart().format(DATE_FORMATTER));
-        dateCell.setCellStyle(dataStyle);
-
-        // Time
-        Cell timeCell = row.createCell(col++);
-        timeCell.setCellValue(lesson.getDateStart().format(TIME_FORMATTER) + " - " +
-                lesson.getDateEnd().format(TIME_FORMATTER));
-        timeCell.setCellStyle(dataStyle);
-
-        // Subject
-        Cell subjectCell = row.createCell(col++);
-        subjectCell.setCellValue(lesson.getSubjectName());
-        subjectCell.setCellStyle(dataStyle);
-
-        // Level
-        Cell levelCell = row.createCell(col++);
-        levelCell.setCellValue(lesson.getSubjectLevel());
-        levelCell.setCellStyle(dataStyle);
-
-        // Teacher
-        Cell teacherCell = row.createCell(col++);
-        teacherCell.setCellValue(lesson.getTeacherName() + " " + lesson.getTeacherSurname());
-        teacherCell.setCellStyle(dataStyle);
-
-        // Students
-        Cell studentsCell = row.createCell(col);
-        studentsCell.setCellValue(String.join(", ", lesson.getStudentNames()));
-        studentsCell.setCellStyle(dataStyle);
-    }
-
-    private void autoSizeColumns(Sheet sheet, int columnCount) {
-        for (int i = 0; i < columnCount; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
-
-    private byte[] writeToByteArray(Workbook workbook) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        workbook.write(outputStream);
-        return outputStream.toByteArray();
+    private String formatLessonInfo(ScheduledLesson lesson) {
+        return String.format("%s (Level %d)\n%s\n%s",
+                lesson.getSubjectName(),
+                lesson.getSubjectLevel(),
+                lesson.getTeacherName() + " " + lesson.getTeacherSurname(),
+                String.join(", ", lesson.getStudentNames()));
     }
 } 

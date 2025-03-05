@@ -84,12 +84,6 @@ public class TeacherScheduleReportBuilder extends AbstractExcelReportBuilder {
         return rowNum + 1; // Add empty row between teachers
     }
 
-    private void autoSizeColumns(Sheet sheet, int columnCount) {
-        for (int i = 0; i < columnCount; i++) {
-            sheet.autoSizeColumn(i);
-        }
-    }
-
     private void addLessonData(Row row, ScheduledLesson lesson) {
         int col = 0;
 

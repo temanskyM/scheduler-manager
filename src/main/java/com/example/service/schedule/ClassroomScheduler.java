@@ -78,7 +78,7 @@ public class ClassroomScheduler {
 
         // Sort classrooms by number of available slots (ascending) to prioritize filling classrooms with fewer slots
         List<Classroom> sortedClassrooms = new ArrayList<>(classrooms);
-        sortedClassrooms.sort(Comparator.comparingInt(c -> classroomTimeSlots.get(c.getId()).size()));
+        sortedClassrooms.sort(Comparator.comparingInt(Classroom::getCapacity).reversed());
 
         // Try to fill each classroom
         for (Classroom classroom : sortedClassrooms) {
