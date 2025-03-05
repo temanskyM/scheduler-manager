@@ -2,8 +2,6 @@ package com.example.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,6 +14,7 @@ import com.example.db.Subject;
 import com.example.db.Teacher;
 import com.example.dto.ScheduledLesson;
 import com.example.dto.SchedulingResponseDto;
+import com.example.service.schedule.ClassroomScheduler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,28 +36,26 @@ public class SchedulingService {
         List<Subject> subjects = subjectService.findAll();
         List<Classroom> classrooms = classroomService.findAll();
 
-        // Create a map of student-subject relationships with required lessons
-
         // Initialize schedule for the week
         LocalDateTime currentWeekStart = getCurrentWeekStart();
 
-        // Create and use ScheduleBuilder to generate the schedule
-        ScheduleBuilder scheduleBuilder = new ScheduleBuilder(students, teachers, subjects, classrooms);
-        List<ScheduledLesson> schedule = scheduleBuilder.buildSchedule(currentWeekStart);
+        // Create and use ClassroomScheduler to generate the schedule
+        ClassroomScheduler scheduler = new ClassroomScheduler(students, teachers, subjects, classrooms);
+        List<ScheduledLesson> schedule = scheduler.buildSchedule(currentWeekStart);
 
         // Save all lessons to the database
         saveLessonsToDatabase(schedule);
 
         // Check if all requirements are met
-        String problems = buildProblemsText(scheduleBuilder, students, subjects);
+        String problems = buildProblemsText(scheduler, students, subjects);
 
         SchedulingResponseDto response = new SchedulingResponseDto();
         response.setProblems(problems);
         return response;
     }
 
-    private String buildProblemsText(ScheduleBuilder scheduleBuilder, List<Student> students, List<Subject> subjects) {
-        Map<Long, Map<Long, Integer>> studentSubjectRequirements = scheduleBuilder.getStudentSubjectRequirements();
+    private String buildProblemsText(ClassroomScheduler scheduler, List<Student> students, List<Subject> subjects) {
+        Map<Long, Map<Long, Integer>> studentSubjectRequirements = scheduler.getStudentSubjectRequirements();
         Map<Long, List<Long>> remainingRequirements = findStudentsNeedingLessons(studentSubjectRequirements);
         String problems = null;
         if (!remainingRequirements.isEmpty()) {
@@ -74,54 +71,49 @@ public class SchedulingService {
     }
 
     private void saveLessonsToDatabase(List<ScheduledLesson> schedule) {
-        ArrayList<Lesson> lessons = new ArrayList<>();
-        for (ScheduledLesson scheduledLesson : schedule) {
-            Lesson lesson = new Lesson();
-            lesson.setDateStart(scheduledLesson.getDateStart());
-            lesson.setDateEnd(scheduledLesson.getDateEnd());
+        List<Lesson> lessons = schedule.stream()
+                .map(scheduledLesson -> {
+                    Lesson lesson = new Lesson();
+                    lesson.setDateStart(scheduledLesson.getDateStart());
+                    lesson.setDateEnd(scheduledLesson.getDateEnd());
 
-            // Set classroom using getReference
-            Classroom classroom = classroomService.getReferenceById(scheduledLesson.getClassroomId());
-            lesson.setClassroom(classroom);
+                    // Set classroom using getReference
+                    Classroom classroom = classroomService.getReferenceById(scheduledLesson.getClassroomId());
+                    lesson.setClassroom(classroom);
 
-            // Set teacher using getReference
-            Teacher teacher = teacherService.getReferenceById(scheduledLesson.getTeacherId());
-            lesson.setTeacher(teacher);
+                    // Set teacher using getReference
+                    Teacher teacher = teacherService.getReferenceById(scheduledLesson.getTeacherId());
+                    lesson.setTeacher(teacher);
 
-            // Set subject using getReference
-            Subject subject = subjectService.getReferenceById(scheduledLesson.getSubjectId());
-            lesson.setSubject(subject);
+                    // Set subject using getReference
+                    Subject subject = subjectService.getReferenceById(scheduledLesson.getSubjectId());
+                    lesson.setSubject(subject);
 
-            // Set students using getReference
-            List<Student> students = scheduledLesson.getStudentIds().stream()
-                    .map(studentService::getReferenceById)
-                    .collect(Collectors.toList());
-            lesson.setStudents(students);
+                    // Set students using getReference
+                    List<Student> students = scheduledLesson.getStudentIds().stream()
+                            .map(studentService::getReferenceById)
+                            .collect(Collectors.toList());
+                    lesson.setStudents(students);
 
-            lessons.add(lesson);
-        }
+                    return lesson;
+                })
+                .collect(Collectors.toList());
 
         lessonRepository.deleteAll();
         lessonRepository.flush();
-        // Save the lesson
         lessonRepository.saveAll(lessons);
     }
 
     private Map<Long, List<Long>> findStudentsNeedingLessons(Map<Long, Map<Long, Integer>> requirements) {
-        Map<Long, List<Long>> studentsNeedingLessons = new HashMap<>();
-
-        for (Map.Entry<Long, Map<Long, Integer>> studentEntry : requirements.entrySet()) {
-            List<Long> subjectsNeeded = studentEntry.getValue().entrySet().stream()
-                    .filter(entry -> entry.getValue() > 0)
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
-
-            if (!subjectsNeeded.isEmpty()) {
-                studentsNeedingLessons.put(studentEntry.getKey(), subjectsNeeded);
-            }
-        }
-
-        return studentsNeedingLessons;
+        return requirements.entrySet().stream()
+                .filter(entry -> entry.getValue().values().stream().anyMatch(value -> value > 0))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().entrySet().stream()
+                                .filter(subjectEntry -> subjectEntry.getValue() > 0)
+                                .map(Map.Entry::getKey)
+                                .collect(Collectors.toList())
+                ));
     }
 
     private String buildRemainingRequirementsMessage(Map<Long, List<Long>> remainingRequirements,

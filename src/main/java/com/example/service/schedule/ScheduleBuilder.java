@@ -1,4 +1,4 @@
-package com.example.service;
+package com.example.service.schedule;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
