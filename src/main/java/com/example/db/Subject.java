@@ -27,8 +27,8 @@ public class Subject {
     @Column(nullable = false)
     private Integer level;
 
-    @Column(nullable = false)
-    private Integer totalHoursPerWeek;
+    @Column(name = "total_count_per_week", nullable = false)
+    private Integer totalCountPerWeek;
 
     @ManyToMany(mappedBy = "subjects")
     private Set<Teacher> teachers;

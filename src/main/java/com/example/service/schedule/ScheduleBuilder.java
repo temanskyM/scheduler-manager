@@ -63,8 +63,7 @@ public class ScheduleBuilder {
         for (Student student : students) {
             Map<Long, Integer> studentRequirements = new HashMap<>();
             for (Subject subject : student.getSubjects()) {
-                int requiredLessons = (int) Math.ceil(subject.getTotalHoursPerWeek() * 60.0 / LESSON_DURATION_MINUTES);
-                studentRequirements.put(subject.getId(), requiredLessons);
+                studentRequirements.put(subject.getId(), subject.getTotalCountPerWeek());
             }
             requirements.put(student.getId(), studentRequirements);
         }

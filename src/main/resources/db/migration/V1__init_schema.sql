@@ -9,7 +9,7 @@ CREATE TABLE classrooms (
 CREATE TABLE subjects (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    total_hours_per_week INTEGER NOT NULL,
+    total_count_per_week INTEGER NOT NULL,
     level INTEGER NOT NULL
 );
 
