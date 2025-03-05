@@ -15,6 +15,7 @@ import com.example.db.Teacher;
 import com.example.dto.ScheduledLesson;
 import com.example.dto.SchedulingResponseDto;
 import com.example.service.schedule.ClassroomScheduler;
+import com.example.service.validation.ScheduleValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,14 +28,18 @@ public class SchedulingService {
     private final SubjectService subjectService;
     private final ClassroomService classroomService;
     private final LessonRepository lessonRepository;
+    private final ScheduleValidationService validationService;
 
     @Transactional
     public SchedulingResponseDto generateSchedule() {
-        // Get all available entities
-        List<Student> students = studentService.findAll();
+        // Get all required data
         List<Teacher> teachers = teacherService.findAll();
+        List<Student> students = studentService.findAll();
         List<Subject> subjects = subjectService.findAll();
         List<Classroom> classrooms = classroomService.findAll();
+
+        // Validate requirements before generating schedule
+        validationService.validateScheduleRequirements(teachers, students, subjects);
 
         // Initialize schedule for the week
         LocalDateTime currentWeekStart = getCurrentWeekStart();
@@ -167,6 +172,7 @@ public class SchedulingService {
 
     private ScheduledLesson convertToScheduledLesson(Lesson lesson) {
         ScheduledLesson scheduledLesson = new ScheduledLesson();
+        scheduledLesson.setId(lesson.getId());
         scheduledLesson.setDateStart(lesson.getDateStart());
         scheduledLesson.setDateEnd(lesson.getDateEnd());
         scheduledLesson.setClassroomId(lesson.getClassroom().getId());
@@ -179,10 +185,10 @@ public class SchedulingService {
         scheduledLesson.setSubjectLevel(lesson.getSubject().getLevel());
         scheduledLesson.setStudentIds(lesson.getStudents().stream()
                 .map(Student::getId)
-                .collect(Collectors.toList()));
+                .toList());
         scheduledLesson.setStudentNames(lesson.getStudents().stream()
-                .map(s -> s.getName() + " " + s.getSurname())
-                .collect(Collectors.toList()));
+                .map(student -> student.getName() + " " + student.getSurname())
+                .toList());
         return scheduledLesson;
     }
 } 

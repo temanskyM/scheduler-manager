@@ -55,7 +55,22 @@ VALUES
     (2, 12), (2, 15), (2, 18),  -- Mary Johnson teaches Biology, Computer Science, English for level 3
     (3, 19), (3, 22), (3, 25),  -- Robert Williams teaches History, Geography, Art for level 1
     (3, 20), (3, 23), (3, 26),  -- Robert Williams teaches History, Geography, Art for level 2
-    (3, 21), (3, 24), (3, 27);  -- Robert Williams teaches History, Geography, Art for level 3
+    (3, 21),
+    (3, 24),
+    (3, 27), -- Robert Williams teaches History, Geography, Art for level 3
+    (4, 1),
+    (4, 2),
+    (4, 3), -- Sarah Brown teaches Mathematics for all levels
+    (4, 10),
+    (4, 11),
+    (4, 12), -- Sarah Brown teaches Biology for all levels
+    (5, 13),
+    (5, 14),
+    (5, 15), -- Michael Davis teaches Computer Science for all levels
+    (5, 16),
+    (5, 17),
+    (5, 18);
+-- Michael Davis teaches English for all levels
 
 -- Insert students with levels
 INSERT INTO students (name, surname, level)
@@ -69,10 +84,9 @@ VALUES
     ('George', 'Green', 2),
     ('Helen', 'Hill', 2),
     ('Ian', 'Irwin', 2),
-    ('Julia3', 'Jones3', 3),
-    ('Helen3', 'Hill3', 3),
-    ('Ian3', 'Irwin3', 3),
-    ('Julia3', 'Jones3', 3);
+    ('Julia', 'Jones', 3),
+    ('Helen', 'Hill', 3),
+    ('Ian', 'Irwin', 3);
 
 -- Link students with subjects (each student has exactly 9 subjects)
 WITH student_subjects_temp AS (
