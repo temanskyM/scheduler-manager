@@ -19,14 +19,13 @@ import com.example.dto.TimeSlot;
 import lombok.Getter;
 
 public class ScheduleBuilder {
+    public static final int MAX_LESSON_PER_DAY = 4;
     private static final int LESSON_DURATION_MINUTES = 45;
     private static final int BREAK_DURATION_MINUTES = 10;
     private static final int TOTAL_SLOT_DURATION = LESSON_DURATION_MINUTES + BREAK_DURATION_MINUTES;
     private static final int LESSONS_PER_DAY = 10;
     private static final LocalTime SCHOOL_START_TIME = LocalTime.of(8, 0);
     private static final LocalTime SCHOOL_END_TIME = LocalTime.of(17, 0);
-    public static final int MAX_LESSON_PER_DAY = 4;
-
     private final List<Student> students;
     private final List<Teacher> teachers;
     private final Map<Long, Subject> subjectById;
@@ -42,12 +41,12 @@ public class ScheduleBuilder {
         this.teachers = teachers;
         this.subjectById = subjects.stream().collect(Collectors.toMap(Subject::getId, it -> it));
         this.classrooms = classrooms;
-        this.teacherSubjectMap = createTeacherSubjectMap();
-        this.studentSubjectRequirements = createStudentSubjectRequirements();
+        this.teacherSubjectMap = createTeacherSubjectMap(teachers);
+        this.studentSubjectRequirements = createStudentSubjectRequirements(students);
         this.schedule = new ArrayList<>();
     }
 
-    private Map<Long, Set<Long>> createTeacherSubjectMap() {
+    private static Map<Long, Set<Long>> createTeacherSubjectMap(List<Teacher> teachers) {
         Map<Long, Set<Long>> map = new HashMap<>();
         for (Teacher teacher : teachers) {
             Set<Long> subjectIds = teacher.getSubjects().stream()
@@ -58,7 +57,7 @@ public class ScheduleBuilder {
         return map;
     }
 
-    private Map<Long, Map<Long, Integer>> createStudentSubjectRequirements() {
+    private static Map<Long, Map<Long, Integer>> createStudentSubjectRequirements(List<Student> students) {
         Map<Long, Map<Long, Integer>> requirements = new HashMap<>();
 
         for (Student student : students) {
@@ -212,6 +211,18 @@ public class ScheduleBuilder {
                 .orElse(Optional.empty());
     }
 
+    private void updateStudentSubjectRequirements(List<Long> studentIds, Long subjectId) {
+        for (Long studentId : studentIds) {
+            Map<Long, Integer> studentRequirements = studentSubjectRequirements.get(studentId);
+            if (studentRequirements != null) {
+                Integer currentRequired = studentRequirements.get(subjectId);
+                if (currentRequired != null && currentRequired > 0) {
+                    studentRequirements.put(subjectId, currentRequired - 1);
+                }
+            }
+        }
+    }
+
     private List<Student> findStudentsForTeacher(Set<Long> teacherSubjects,
             Map<Long, List<Long>> studentsNeedingLessons) {
         return students.stream()
@@ -241,14 +252,6 @@ public class ScheduleBuilder {
     private List<Student> findStudentsForSubject(List<Student> students, Long subjectId, TimeSlot timeSlot) {
         Subject subject = subjectById.get(subjectId);
         if (subject == null) {
-            return List.of();
-        }
-
-        long lessonsToday = schedule.stream()
-                .filter(lesson -> lesson.getSubjectId().equals(subjectId) &&
-                        lesson.getDateStart().toLocalDate().equals(timeSlot.getDateStart().toLocalDate()))
-                .count();
-        if (lessonsToday >= MAX_LESSON_PER_DAY) {
             return List.of();
         }
 
@@ -378,17 +381,5 @@ public class ScheduleBuilder {
         }
 
         return false;
-    }
-
-    private void updateStudentSubjectRequirements(List<Long> studentIds, Long subjectId) {
-        for (Long studentId : studentIds) {
-            Map<Long, Integer> studentRequirements = studentSubjectRequirements.get(studentId);
-            if (studentRequirements != null) {
-                Integer currentRequired = studentRequirements.get(subjectId);
-                if (currentRequired != null && currentRequired > 0) {
-                    studentRequirements.put(subjectId, currentRequired - 1);
-                }
-            }
-        }
     }
 } 
