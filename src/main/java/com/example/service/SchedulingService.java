@@ -163,4 +163,34 @@ public class SchedulingService {
 
         return errorMessage.toString();
     }
+
+    public List<ScheduledLesson> getCurrentWeekLessons() {
+        LocalDateTime weekStart = getCurrentWeekStart();
+        LocalDateTime weekEnd = weekStart.plusDays(5);
+
+        return lessonRepository.findByDateStartBetweenOrderByDateStart(weekStart, weekEnd).stream()
+                .map(this::convertToScheduledLesson)
+                .collect(Collectors.toList());
+    }
+
+    private ScheduledLesson convertToScheduledLesson(Lesson lesson) {
+        ScheduledLesson scheduledLesson = new ScheduledLesson();
+        scheduledLesson.setDateStart(lesson.getDateStart());
+        scheduledLesson.setDateEnd(lesson.getDateEnd());
+        scheduledLesson.setClassroomId(lesson.getClassroom().getId());
+        scheduledLesson.setClassroomName(lesson.getClassroom().getName());
+        scheduledLesson.setTeacherId(lesson.getTeacher().getId());
+        scheduledLesson.setTeacherName(lesson.getTeacher().getName());
+        scheduledLesson.setTeacherSurname(lesson.getTeacher().getSurname());
+        scheduledLesson.setSubjectId(lesson.getSubject().getId());
+        scheduledLesson.setSubjectName(lesson.getSubject().getName());
+        scheduledLesson.setSubjectLevel(lesson.getSubject().getLevel());
+        scheduledLesson.setStudentIds(lesson.getStudents().stream()
+                .map(Student::getId)
+                .collect(Collectors.toList()));
+        scheduledLesson.setStudentNames(lesson.getStudents().stream()
+                .map(s -> s.getName() + " " + s.getSurname())
+                .collect(Collectors.toList()));
+        return scheduledLesson;
+    }
 } 

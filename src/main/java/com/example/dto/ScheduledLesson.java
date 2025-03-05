@@ -1,8 +1,9 @@
 package com.example.dto;
 
-import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import lombok.Data;
 
 @Data
 public class ScheduledLesson {
@@ -16,6 +17,7 @@ public class ScheduledLesson {
     private String teacherSurname;
     private Long subjectId;
     private String subjectName;
+    private Integer subjectLevel;
     private List<Long> studentIds;
     private List<String> studentNames;
 } 
