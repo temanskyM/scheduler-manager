@@ -2,11 +2,13 @@ package com.example.controller;
 
 import java.util.List;
 
+import com.example.db.Classroom;
 import com.example.db.Student;
 import com.example.db.Teacher;
 import com.example.dto.ScheduledLesson;
+import com.example.service.ClassroomService;
 import com.example.service.ExcelReportService;
-import com.example.service.SchedulingService;
+import com.example.service.LessonService;
 import com.example.service.StudentService;
 import com.example.service.TeacherService;
 import lombok.RequiredArgsConstructor;
@@ -22,51 +24,47 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReportController {
     private final ExcelReportService excelReportService;
-    private final SchedulingService schedulingService;
+    private final LessonService lessonService;
     private final StudentService studentService;
     private final TeacherService teacherService;
+    private final ClassroomService classroomService;
 
     @GetMapping("/student-schedule")
     public ResponseEntity<byte[]> downloadStudentSchedule() {
-        // Get the current week's lessons from the database
-        List<ScheduledLesson> schedule = schedulingService.getCurrentWeekLessons();
         List<Student> students = studentService.findAll();
+        List<ScheduledLesson> schedule = lessonService.getCurrentWeekLessons();
 
-        byte[] excelContent = excelReportService.generateStudentScheduleReport(schedule, students);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(
-                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-        headers.add("Content-Disposition",
-                "attachment; filename=\"student_schedule.xlsx\"; filename*=UTF-8''student_schedule.xlsx");
-        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-        headers.setPragma("no-cache");
-        headers.setExpires(0);
+        byte[] report = excelReportService.generateStudentScheduleReport(schedule, students);
 
         return ResponseEntity.ok()
-                .headers(headers)
-                .body(excelContent);
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=student_schedule.xlsx")
+                .body(report);
     }
 
     @GetMapping("/teacher-schedule")
     public ResponseEntity<byte[]> downloadTeacherSchedule() {
-        // Get the current week's lessons from the database
-        List<ScheduledLesson> schedule = schedulingService.getCurrentWeekLessons();
         List<Teacher> teachers = teacherService.findAll();
+        List<ScheduledLesson> schedule = lessonService.getCurrentWeekLessons();
 
-        byte[] excelContent = excelReportService.generateTeacherScheduleReport(schedule, teachers);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(
-                MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-        headers.add("Content-Disposition",
-                "attachment; filename=\"teacher_schedule.xlsx\"; filename*=UTF-8''teacher_schedule.xlsx");
-        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-        headers.setPragma("no-cache");
-        headers.setExpires(0);
+        byte[] report = excelReportService.generateTeacherScheduleReport(schedule, teachers);
 
         return ResponseEntity.ok()
-                .headers(headers)
-                .body(excelContent);
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=teacher_schedule.xlsx")
+                .body(report);
+    }
+
+    @GetMapping("/classroom-schedule")
+    public ResponseEntity<byte[]> downloadClassroomSchedule() {
+        List<Classroom> classrooms = classroomService.findAll();
+        List<ScheduledLesson> schedule = lessonService.getCurrentWeekLessons();
+
+        byte[] report = excelReportService.generateClassroomScheduleReport(schedule, classrooms);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=classroom_schedule.xlsx")
+                .body(report);
     }
 } 
