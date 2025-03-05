@@ -50,6 +50,7 @@ public class StudentScheduleReportBuilder extends AbstractExcelReportBuilder {
 
         // Auto-size columns
         autoSizeColumns(sheet, headers.length);
+        autoSizeRows(sheet, 0, 2 + LESSONS_PER_DAY - 1); // From week header to last time slot
     }
 
     private byte[] writeToByteArray(Workbook workbook) throws IOException {

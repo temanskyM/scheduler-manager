@@ -53,6 +53,7 @@ public class ClassroomScheduleReportBuilder extends AbstractExcelReportBuilder {
 
         // Auto-size columns
         autoSizeColumns(sheet, 6);
+        autoSizeRows(sheet, 0, 2 + LESSONS_PER_DAY - 1); // From week header to last time slot
     }
 
     private void addLessonToSheet(Sheet sheet, ScheduledLesson lesson) {

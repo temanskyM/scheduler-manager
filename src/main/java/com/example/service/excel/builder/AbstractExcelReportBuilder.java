@@ -55,6 +55,7 @@ public abstract class AbstractExcelReportBuilder {
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
+        style.setWrapText(true); // Enable text wrapping
         return style;
     }
 
@@ -101,6 +102,24 @@ public abstract class AbstractExcelReportBuilder {
     protected void autoSizeColumns(Sheet sheet, int columnCount) {
         for (int i = 0; i < columnCount; i++) {
             sheet.autoSizeColumn(i);
+        }
+    }
+
+    protected void autoSizeRows(Sheet sheet, int startRow, int endRow) {
+        for (int i = startRow; i <= endRow; i++) {
+            Row row = sheet.getRow(i);
+            if (row != null) {
+                // Calculate the maximum height needed for this row
+                int maxLines = 0;
+                for (Cell cell : row) {
+                    if (cell != null) {
+                        int numLines = cell.getStringCellValue().split("\n").length;
+                        maxLines = Math.max(maxLines, numLines); // 15 points per line
+                    }
+                }
+                // Set the row height to accommodate the content
+                row.setHeight((short) ((short) maxLines * sheet.getDefaultRowHeight()));
+            }
         }
     }
 
