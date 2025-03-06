@@ -5,15 +5,15 @@ A Spring Boot application for managing school schedules, including teachers, stu
 ## Features
 
 - Automatic schedule generation for the entire school
+- Validation of scheduling requirements:
+    - Teachers must have at least one subject
+    - Students must have exactly 9 subjects
+    - Subjects must have at least one teacher
 - Multiple report formats:
     - Teacher schedules (by teacher)
     - Student schedules (by student and class)
     - Classroom schedules (by room)
 - Excel reports with clear weekly layouts
-- Validation of scheduling requirements:
-    - Teachers must have at least one subject
-    - Students must have exactly 9 subjects
-    - Subjects must have at least one teacher
 - Interactive API documentation with Swagger UI
 
 ## Prerequisites
@@ -28,6 +28,17 @@ A Spring Boot application for managing school schedules, including teachers, stu
 The easiest way to run the application is using Docker Compose:
 
 1. Make sure Docker and Docker Compose are installed on your system
+
+1.2. Add file .env to the root of the project
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=scheduler
+DB_SCHEMA=public
+DB_USERNAME=postgres
+DB_PASSWORD=postgres_secret
+```
 
 2. Run the application stack:
 
@@ -58,57 +69,6 @@ To view logs:
 ```bash
 docker compose logs -f
 ```
-
-## Manual Setup
-
-If you prefer to run the application without Docker, follow these steps:
-
-### Database Setup
-
-1. Create a PostgreSQL database:
-
-```sql
-CREATE DATABASE school_scheduler;
-```
-
-2. The application will automatically create all necessary tables on startup using Flyway migrations.
-
-### Configuration
-
-1. Update database connection settings in `src/main/resources/application.properties`:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/school_scheduler
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-```
-
-### Running the Application
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/your-username/scheduler-manager.git
-cd scheduler-manager
-```
-
-2. Build the project:
-
-```bash
-mvn clean install
-```
-
-3. Run the application:
-
-```bash
-mvn spring-boot:run
-```
-
-The application will start on:
-
-- Main application: `http://localhost:8080`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI documentation: `http://localhost:8080/v3/api-docs`
 
 ## API Documentation
 
@@ -194,7 +154,3 @@ The application provides clear error messages for various scenarios:
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
