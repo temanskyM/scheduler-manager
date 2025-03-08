@@ -1,11 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="app.js"> </script>
-
     <title>Add Students</title>
     <style>
       body {
@@ -23,7 +21,8 @@
         margin-top: 20px;
       }
 
-      th, td {
+      th,
+      td {
         border: 1px solid black;
         padding: 10px;
         text-align: left;
@@ -40,15 +39,24 @@
         cursor: pointer;
       }
 
+      select {
+        width: 100%;
+      }
+
+      select:disabled {
+        background-color: #f0f0f0;
+        cursor: not-allowed;
+      }
+
       input {
         width: 99%;
       }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h2>Add Students</h2>
 
-    <h4> Student 1</h4>
+    <h4>Student 1</h4>
     <table>
       <tr>
         <th>Name</th>
@@ -56,9 +64,9 @@
         <th>Level</th>
       </tr>
       <tr>
-        <td><input id="Name" type="text"></td>
-        <td><input id="Surname" type="text"></td>
-        <td><input id="Level" type="text"></td>
+        <td><input id="Name" type="text" /></td>
+        <td><input id="Surname" type="text" /></td>
+        <td><input id="Level" type="text" oninput="handleLevelChange()" /></td>
       </tr>
     </table>
     <table>
@@ -66,61 +74,156 @@
         <th>Subjects</th>
       </tr>
       <tr>
-        <td><input id="Subject 1" type="text"></td>
+        <td>
+          <select id="Subject1" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 2" type="text"></td>
+        <td>
+          <select id="Subject2" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 3" type="text"></td>
+        <td>
+          <select id="Subject3" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 4" type="text"></td>
+        <td>
+          <select id="Subject4" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 5" type="text"></td>
+        <td>
+          <select id="Subject5" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 6" type="text"></td>
+        <td>
+          <select id="Subject6" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 7" type="text"></td>
+        <td>
+          <select id="Subject7" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 8" type="text"></td>
+        <td>
+          <select id="Subject8" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
       <tr>
-        <td><input id="Subject 9" type="text"></td>
+        <td>
+          <select id="Subject9" disabled>
+            <option value="">Выберите предмет</option>
+          </select>
+        </td>
       </tr>
     </table>
 
-    <button onclick="AddStedent()"> Enter </button>
-
+    <button onclick="AddStudent()">Enter</button>
     <button onclick="location.href='index.html'">Back</button>
 
     <script>
-      async function AddStedent() {
-        // Собираем данные из полей ввода
-        const teacherData = {
+      // Функция для обработки изменения поля Level
+      async function handleLevelChange() {
+        const levelInput = document.getElementById("Level");
+        const level = levelInput.value.trim();
+
+        // Если поле Level пустое, дизейблим поля Subject
+        if (!level) {
+          disableSubjectFields();
+          return;
+        }
+
+        // Если поле Level заполнено, запрашиваем данные с API
+        try {
+          const response = await axios.get(
+            `http://localhost:8080/api/subjects/findAllByLevel?level=${level}`,
+          );
+          const subjects = response.data; // Предполагаем, что API возвращает массив предметов
+
+          // Заполняем выпадающие списки и включаем их
+          fillSubjectFields(subjects);
+          enableSubjectFields();
+        } catch (error) {
+          console.error("Ошибка при получении предметов:", error);
+          alert("Не удалось загрузить список предметов.");
+          disableSubjectFields();
+        }
+      }
+
+      // Функция для заполнения выпадающих списков
+      function fillSubjectFields(subjects) {
+        for (let i = 1; i <= 9; i++) {
+          const select = document.getElementById(`Subject${i}`);
+          select.innerHTML = '<option value="">Выберите предмет</option>'; // Очищаем список
+
+          subjects.forEach((subject) => {
+            const option = document.createElement("option");
+            option.value = subject.id; // Используйте уникальный идентификатор предмета
+            option.textContent = subject.name; // Используйте название предмета
+            select.appendChild(option);
+          });
+        }
+      }
+
+      // Функция для дизейбла полей Subject
+      function disableSubjectFields() {
+        for (let i = 1; i <= 9; i++) {
+          const select = document.getElementById(`Subject${i}`);
+          select.disabled = true;
+          select.innerHTML = '<option value="">Выберите предмет</option>'; // Очищаем список
+        }
+      }
+
+      // Функция для включения полей Subject
+      function enableSubjectFields() {
+        for (let i = 1; i <= 9; i++) {
+          const select = document.getElementById(`Subject${i}`);
+          select.disabled = false;
+        }
+      }
+
+      // Функция для отправки данных на сервер
+      async function AddStudent() {
+        const studentData = {
           name: document.getElementById("Name").value,
           surname: document.getElementById("Surname").value,
           level: document.getElementById("Level").value,
-          subjects: [
-            document.getElementById("Subject 1").value,
-            document.getElementById("Subject 2").value,
-            document.getElementById("Subject 3").value,
-            document.getElementById("Subject 4").value,
-            document.getElementById("Subject 5").value,
-            document.getElementById("Subject 6").value,
-            document.getElementById("Subject 7").value,
-            document.getElementById("Subject 8").value,
-            document.getElementById("Subject 9").value,
-          ],
+          subjects: [],
         };
 
+        // Собираем выбранные предметы
+        for (let i = 1; i <= 9; i++) {
+          const subjectId = document.getElementById(`Subject${i}`).value;
+          if (subjectId) {
+            studentData.subjects.push(subjectId);
+          }
+        }
+
         try {
-          // Отправляем данные на сервер
-          const response = await axios.post("http://localhost:8080/api/students", teacherData);
+          const response = await axios.post(
+            "http://localhost:8080/api/students",
+            studentData,
+          );
           console.log("Ответ сервера:", response.data);
           alert("Данные успешно отправлены!");
         } catch (error) {
@@ -128,7 +231,9 @@
           alert("Произошла ошибка при отправке данных.");
         }
       }
-    </script>
 
-</body>
+      // Дизейблим поля Subject при загрузке страницы
+      disableSubjectFields();
+    </script>
+  </body>
 </html>

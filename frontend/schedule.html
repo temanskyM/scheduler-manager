@@ -1,109 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="app.js"></script>
-
     <title>Generate Schedule</title>
     <style>
-        body {
-            display: flex;
-            height: 100vh;
-            background-color: #f4f4f4;
-            flex-direction: column;
-        }
+      body {
+        display: flex;
+        height: 100vh;
+        background-color: #f4f4f4;
+        flex-direction: column;
+      }
 
-        .bigcontainer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-            flex-direction: column;
-        }
+      .bigcontainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+        flex-direction: column;
+      }
 
-        .container {
-            display: flex;
-            justify-content: space-around;
-            width: 80%;
-        }
+      .container {
+        display: flex;
+        justify-content: space-around;
+        width: 80%;
+      }
 
-        .column {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 30%;
-            text-align: center;
-        }
+      .column {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 30%;
+        text-align: center;
+      }
 
-        input {
-            width: 80%;
-            padding: 10px;
-            margin-top: 10px;
-        }
+      input {
+        width: 80%;
+        padding: 10px;
+        margin-top: 10px;
+      }
 
-        button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+      button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="bigcontainer">
-        <div class="container">
-            <div class="column">
-                <h2>Generate Teacher Schedule</h2>
-                <button onclick="GenerateTeacherSchedule()"> Download </button>
-            </div>
-            <div class="column">
-                <h2>Generate Student Schedule</h2>
-                <button  onclick="GenerateStudentSchedule()"> Download </button>
-            </div>
-            <div class="column">
-                <h2>Generate Classroom Schedule</h2>
-                <button onclick="GenerateClassroomSchedule()"> Download </button>
-            </div>
+      <div class="container">
+        <div class="column">
+          <h2>Generate Teacher Schedule</h2>
+          <button onclick="GenerateTeacherSchedule()">Download</button>
         </div>
-      
-        <button onclick="location.href='index.html'">Back</button>
+        <div class="column">
+          <h2>Generate Student Schedule</h2>
+          <button onclick="GenerateStudentSchedule()">Download</button>
+        </div>
+        <div class="column">
+          <h2>Generate Classroom Schedule</h2>
+          <button onclick="GenerateClassroomSchedule()">Download</button>
+        </div>
+      </div>
+
+      <button onclick="location.href='index.html'">Back</button>
     </div>
     <script>
+      // Функция для скачивания файла
+      function downloadFile(blob, filename) {
+        // Создаем ссылку на файл
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename; // Имя файла
+        document.body.appendChild(a);
+        a.click(); // Инициируем скачивание
+        document.body.removeChild(a); // Удаляем ссылку
+        window.URL.revokeObjectURL(url); // Освобождаем память
+      }
+
       async function GenerateTeacherSchedule() {
         try {
-          // Отправляем данные на сервер
-          const response = await axios.get("http://localhost:8080/api/reports/teacher-schedule");
-          console.log("Ответ сервера:", response.data);
+          // Отправляем GET-запрос с responseType: 'blob'
+          const response = await axios.get(
+            "http://localhost:8080/api/reports/teacher-schedule",
+            { responseType: "blob" }, // Указываем, что ожидаем бинарные данные
+          );
+
+          // Скачиваем файл
+          downloadFile(response.data, "teacher_schedule.xlsx");
           alert("Отчет успешно загружен!");
         } catch (error) {
           console.error("Ошибка:", error);
           alert("Произошла ошибка при загрузке данных.");
         }
       }
-    </script>
-    <script>
+
       async function GenerateStudentSchedule() {
         try {
-          // Отправляем данные на сервер
-          const response = await axios.get("http://localhost:8080/api/reports/student-schedule");
-          console.log("Ответ сервера:", response.data);
+          // Отправляем GET-запрос с responseType: 'blob'
+          const response = await axios.get(
+            "http://localhost:8080/api/reports/student-schedule",
+            { responseType: "blob" },
+          );
+
+          // Скачиваем файл
+          downloadFile(response.data, "student_schedule.xlsx");
           alert("Отчет успешно загружен!");
         } catch (error) {
           console.error("Ошибка:", error);
           alert("Произошла ошибка при загрузке данных.");
         }
       }
-    </script>
-    <script>
+
       async function GenerateClassroomSchedule() {
         try {
-          // Отправляем данные на сервер
-          const response = await axios.get("http://localhost:8080/api/reports/classroom-schedule");
-          console.log("Ответ сервера:", response.data);
+          // Отправляем GET-запрос с responseType: 'blob'
+          const response = await axios.get(
+            "http://localhost:8080/api/reports/classroom-schedule",
+            { responseType: "blob" },
+          );
+
+          // Скачиваем файл
+          downloadFile(response.data, "classroom_schedule.xlsx");
           alert("Отчет успешно загружен!");
         } catch (error) {
           console.error("Ошибка:", error);
@@ -111,6 +135,5 @@
         }
       }
     </script>
-
-</body>
+  </body>
 </html>
