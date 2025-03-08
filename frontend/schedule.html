@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="app.js"></script>
 
     <title>Generate Schedule</title>
@@ -58,22 +58,59 @@
         <div class="container">
             <div class="column">
                 <h2>Generate Teacher Schedule</h2>
-                <input type="text" placeholder="Teacher Name">
-                <button onclick="app.js.excelExport()"> Download </button>
+                <button onclick="GenerateTeacherSchedule()"> Download </button>
             </div>
             <div class="column">
                 <h2>Generate Student Schedule</h2>
-                <input type="text" placeholder="Student Name">
-                <button  onclick="app.js.excelExport()"> Download </button>
+                <button  onclick="GenerateStudentSchedule()"> Download </button>
             </div>
             <div class="column">
                 <h2>Generate Classroom Schedule</h2>
-                <input type="text" placeholder="Classroom Name">
-                <button onclick="app.js.excelExport()"> Download </button>
+                <button onclick="GenerateClassroomSchedule()"> Download </button>
             </div>
         </div>
       
         <button onclick="location.href='index.html'">Back</button>
-    </div>  
+    </div>
+    <script>
+      async function GenerateTeacherSchedule() {
+        try {
+          // Отправляем данные на сервер
+          const response = await axios.get("http://localhost:8080/api/reports/teacher-schedule");
+          console.log("Ответ сервера:", response.data);
+          alert("Отчет успешно загружен!");
+        } catch (error) {
+          console.error("Ошибка:", error);
+          alert("Произошла ошибка при загрузке данных.");
+        }
+      }
+    </script>
+    <script>
+      async function GenerateStudentSchedule() {
+        try {
+          // Отправляем данные на сервер
+          const response = await axios.get("http://localhost:8080/api/reports/student-schedule");
+          console.log("Ответ сервера:", response.data);
+          alert("Отчет успешно загружен!");
+        } catch (error) {
+          console.error("Ошибка:", error);
+          alert("Произошла ошибка при загрузке данных.");
+        }
+      }
+    </script>
+    <script>
+      async function GenerateClassroomSchedule() {
+        try {
+          // Отправляем данные на сервер
+          const response = await axios.get("http://localhost:8080/api/reports/classroom-schedule");
+          console.log("Ответ сервера:", response.data);
+          alert("Отчет успешно загружен!");
+        } catch (error) {
+          console.error("Ошибка:", error);
+          alert("Произошла ошибка при загрузке данных.");
+        }
+      }
+    </script>
+
 </body>
 </html>

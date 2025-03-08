@@ -3,169 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="app.js"> </script>
+
     <title>Add Students</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100%;
-            background-color: #f4f4f4;
-        }
-        .container1 {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            text-align: left;
-        }
-       
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+      }
 
-        th {
-            border: 1px solid black;
-            padding: 0px;
-            text-align: left;
-        }
+      table {
+        width: 90%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
 
-        th {
-            background-color: #ddd;
-        }
+      th, td {
+        border: 1px solid black;
+        padding: 10px;
+        text-align: left;
+      }
 
+      th {
+        background-color: #ddd;
+      }
 
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      input {
+        width: 99%;
+      }
     </style>
 </head>
 <body>
     <h2>Add Students</h2>
 
     <h4> Student 1</h4>
-    <table id="student1">
-        <tr>
-            <th>Name</th>
-            <th>Surname</th>
-            <th>Patronymic</th>
-            <th> Grade </th>
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
-        <tr>
-            <th>Subject 1</th>
-            <th>Subject 2</th>
-            <th>Subject 3</th>
-            <th>Subject 4</th>
-            <th>Subject 5</th>
-            <th>Subject 6</th>
-            <th>Subject 7</th>
-            <th>Subject 8</th>
-            <th>Subject 9</th>
-
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Surname</th>
+        <th>Level</th>
+      </tr>
+      <tr>
+        <td><input id="Name" type="text"></td>
+        <td><input id="Surname" type="text"></td>
+        <td><input id="Level" type="text"></td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <th>Subjects</th>
+      </tr>
+      <tr>
+        <td><input id="Subject 1" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 2" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 3" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 4" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 5" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 6" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 7" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 8" type="text"></td>
+      </tr>
+      <tr>
+        <td><input id="Subject 9" type="text"></td>
+      </tr>
     </table>
 
-    <h4> Student 2</h4>
-    <table id="student2">
-        <tr>
-            <th>Name</th>
-            <th>Surname</th>
-            <th>Patronymic</th>
-            <th> Grade </th>
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
-        <tr>
-            <th>Subject 1</th>
-            <th>Subject 2</th>
-            <th>Subject 3</th>
-            <th>Subject 4</th>
-            <th>Subject 5</th>
-            <th>Subject 6</th>
-            <th>Subject 7</th>
-            <th>Subject 8</th>
-            <th>Subject 9</th>
-
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
-    </table>
-
-    <h4> Student 3</h4>
-    <table id="student3">
-        <tr>
-            <th>Name</th>
-            <th>Surname</th>
-            <th>Patronymic</th>
-            <th> Grade </th>
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
-        <tr>
-            <th>Subject 1</th>
-            <th>Subject 2</th>
-            <th>Subject 3</th>
-            <th>Subject 4</th>
-            <th>Subject 5</th>
-            <th>Subject 6</th>
-            <th>Subject 7</th>
-            <th>Subject 8</th>
-            <th>Subject 9</th>
-
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
-    </table>
-
-    <button onclick="app.js.datareturn()"> Enter </button>
+    <button onclick="AddStedent()"> Enter </button>
 
     <button onclick="location.href='index.html'">Back</button>
+
+    <script>
+      async function AddStedent() {
+        // Собираем данные из полей ввода
+        const teacherData = {
+          name: document.getElementById("Name").value,
+          surname: document.getElementById("Surname").value,
+          level: document.getElementById("Level").value,
+          subjects: [
+            document.getElementById("Subject 1").value,
+            document.getElementById("Subject 2").value,
+            document.getElementById("Subject 3").value,
+            document.getElementById("Subject 4").value,
+            document.getElementById("Subject 5").value,
+            document.getElementById("Subject 6").value,
+            document.getElementById("Subject 7").value,
+            document.getElementById("Subject 8").value,
+            document.getElementById("Subject 9").value,
+          ],
+        };
+
+        try {
+          // Отправляем данные на сервер
+          const response = await axios.post("http://localhost:8080/api/students", teacherData);
+          console.log("Ответ сервера:", response.data);
+          alert("Данные успешно отправлены!");
+        } catch (error) {
+          console.error("Ошибка:", error);
+          alert("Произошла ошибка при отправке данных.");
+        }
+      }
+    </script>
 
 </body>
 </html>
