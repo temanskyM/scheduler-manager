@@ -9,6 +9,7 @@ import com.example.db.Student;
 import com.example.db.StudentRepository;
 import com.example.db.Subject;
 import com.example.db.SubjectRepository;
+import com.example.exception.ValidationException;
 import com.example.service.student.StudentCreateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,11 +51,17 @@ public class StudentService {
         entity.setSurname(createDto.surname());
         entity.setLevel(createDto.level());
 
+        if (createDto.subjects() == null || createDto.subjects().isEmpty()) {
+            throw new ValidationException("Subject name cannot be empty");
+        }
+        if (createDto.subjects().size() != 9) {
+            throw new ValidationException("Student must have 9 subjects");
+        }
         Set<Subject> subjects = new HashSet<>();
         for (String subject : createDto.subjects()) {
             Optional<Subject> subjectOpt = subjectRepository.findFirstByNameAndLevel(subject, entity.getLevel());
             if (subjectOpt.isEmpty()) {
-                throw new RuntimeException("Subject " + subject + "not found");
+                throw new ValidationException("Subject " + subject + " not found");
             }
             subjects.add(subjectOpt.get());
         }
