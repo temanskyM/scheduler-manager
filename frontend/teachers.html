@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="app.js"></script>
 
     <title>Add Teachers</title>
@@ -55,14 +55,14 @@
             <th>Subject 5</th>
         </tr>
         <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
+            <td><input id="Name" type="text"></td>
+            <td><input id="Surname" type="text"></td>
+            <td><input id="Patronymic" type="text"></td>
+            <td><input id="Subject 1" type="text"></td>
+            <td><input id="Subject 2" type="text"></td>
+            <td><input id="Subject 3" type="text"></td>
+            <td><input id="Subject 4" type="text"></td>
+            <td><input id="Subject 5" type="text"></td>
         </tr>
         <tr>
 
@@ -70,48 +70,52 @@
             <th>Subject 7</th>
             <th>Subject 8</th>
             <th>Subject 9</th>
-            <th>Subject 10</th>
-            <th>Day 1</th>
-            <th>Day 1 Time</th>
-            <th>Day 2</th>
         </tr>
         <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-        </tr>
-
-        <tr>
-            <th>Day 2 Time</th>
-            <th>Day 3</th>
-            <th>Day 3 Time</th>
-            <th>Day 4</th>
-            <th>Day 4 Time</th>
-            <th>Day 5</th>
-            <th>Day 5 Time</th>
-        </tr>
-        <tr>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-            <td><input type="text"></td>
-
+            <td><input id="Subject 6" type="text"></td>
+            <td><input id="Subject 7" type="text"></td>
+            <td><input id="Subject 8" type="text"></td>
+            <td><input id="Subject 9" type="text"></td>
         </tr>
     </table>
 
     <h3> Number of teachers: </h3>
 
-    <button onclick="app.js.AddTeachers()"> Enter </button>
+    <button onclick="AddTeachers()"> Enter </button>
 
     <button onclick="location.href='index.html'"> Back </button>
+
+    <script>
+      async function AddTeachers() {
+        // Собираем данные из полей ввода
+        const teacherData = {
+          name: document.getElementById("Name").value,
+          surname: document.getElementById("Surname").value,
+          patronymic: document.getElementById("Patronymic").value,
+          subjects: [
+            document.getElementById("Subject 1").value,
+            document.getElementById("Subject 2").value,
+            document.getElementById("Subject 3").value,
+            document.getElementById("Subject 4").value,
+            document.getElementById("Subject 5").value,
+            document.getElementById("Subject 6").value,
+            document.getElementById("Subject 7").value,
+            document.getElementById("Subject 8").value,
+            document.getElementById("Subject 9").value,
+          ],
+        };
+
+        try {
+          // Отправляем данные на сервер
+          const response = await axios.post("http://localhost:8080/api/teachers", teacherData);
+          console.log("Ответ сервера:", response.data);
+          alert("Данные успешно отправлены!");
+        } catch (error) {
+          console.error("Ошибка:", error);
+          alert("Произошла ошибка при отправке данных.");
+        }
+      }
+    </script>
 
 </body>
 </html>
