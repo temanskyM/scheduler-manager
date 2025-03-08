@@ -1,12 +1,20 @@
 package com.example.controller;
 
+import java.util.List;
+
 import com.example.db.Student;
 import com.example.service.StudentService;
+import com.example.service.student.StudentCreateDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/students")
@@ -28,8 +36,8 @@ public class StudentController {
     }
 
     @PostMapping
-    public Student createStudent(@RequestBody Student student) {
-        return studentService.save(student);
+    public void createStudent(@RequestBody StudentCreateDto student) {
+        studentService.create(student);
     }
 
     @PutMapping("/{id}")
