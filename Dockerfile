@@ -34,6 +34,12 @@ WORKDIR ${WORKDIR}
 # Install necessary packages
 USER root
 
+# Install necessary packages
+USER root
+RUN microdnf -y update && \
+    microdnf -y install fontconfig && \
+    microdnf clean all
+
 RUN useradd -ms /bin/bash spring-user
 USER spring-user
 # Copy application layers
