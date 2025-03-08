@@ -2,10 +2,12 @@ package com.example.service.student;
 
 import java.util.List;
 
+import jakarta.validation.constraints.NotNull;
+
 public record StudentCreateDto(
-        String name,
-        String surname,
-        Integer level,
-        List<String> subjects
+        @NotNull String name,
+        @NotNull String surname,
+        @NotNull Integer level,
+        @NotNull List<String> subjects
 ) {
 }

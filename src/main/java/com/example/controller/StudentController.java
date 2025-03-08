@@ -5,6 +5,7 @@ import java.util.List;
 import com.example.db.Student;
 import com.example.service.StudentService;
 import com.example.service.student.StudentCreateDto;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,7 +37,7 @@ public class StudentController {
     }
 
     @PostMapping
-    public void createStudent(@RequestBody StudentCreateDto student) {
+    public void createStudent(@Valid @RequestBody StudentCreateDto student) {
         studentService.create(student);
     }
 

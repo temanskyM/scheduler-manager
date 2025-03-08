@@ -5,6 +5,7 @@ import java.util.List;
 import com.example.db.Teacher;
 import com.example.service.TeacherService;
 import com.example.service.teacher.TeacherCreateDto;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,7 +37,7 @@ public class TeacherController {
     }
 
     @PostMapping
-    public void createTeacher(@RequestBody TeacherCreateDto teacher) {
+    public void createTeacher(@Valid @RequestBody TeacherCreateDto teacher) {
         teacherService.create(teacher);
     }
 
