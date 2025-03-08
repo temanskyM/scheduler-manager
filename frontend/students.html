@@ -178,7 +178,7 @@
 
           subjects.forEach((subject) => {
             const option = document.createElement("option");
-            option.value = subject.id; // Используйте уникальный идентификатор предмета
+            option.value = subject.name; // Используйте уникальный идентификатор предмета
             option.textContent = subject.name; // Используйте название предмета
             select.appendChild(option);
           });
@@ -214,6 +214,7 @@
         // Собираем выбранные предметы
         for (let i = 1; i <= 9; i++) {
           const subjectId = document.getElementById(`Subject${i}`).value;
+          console.log(subjectId, document.getElementById(`Subject${i}`))
           if (subjectId) {
             studentData.subjects.push(subjectId);
           }
