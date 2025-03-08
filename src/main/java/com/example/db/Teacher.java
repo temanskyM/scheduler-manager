@@ -29,6 +29,9 @@ public class Teacher {
 
     @Column(nullable = false)
     private String surname;
+
+    @Column(nullable = false)
+    private String patronymic;
     
     private LocalTime timeStart;
     private LocalTime timeEnd;
