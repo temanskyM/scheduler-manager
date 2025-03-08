@@ -48,35 +48,67 @@
             <th>Name</th>
             <th>Surname</th>
             <th>Patronymic</th>
-            <th>Subject 1</th>
-            <th>Subject 2</th>
-            <th>Subject 3</th>
-            <th>Subject 4</th>
-            <th>Subject 5</th>
         </tr>
         <tr>
             <td><input id="Name" type="text"></td>
             <td><input id="Surname" type="text"></td>
             <td><input id="Patronymic" type="text"></td>
-            <td><input id="Subject 1" type="text"></td>
-            <td><input id="Subject 2" type="text"></td>
-            <td><input id="Subject 3" type="text"></td>
-            <td><input id="Subject 4" type="text"></td>
-            <td><input id="Subject 5" type="text"></td>
         </tr>
-        <tr>
-
-            <th>Subject 6</th>
-            <th>Subject 7</th>
-            <th>Subject 8</th>
-            <th>Subject 9</th>
-        </tr>
-        <tr>
-            <td><input id="Subject 6" type="text"></td>
-            <td><input id="Subject 7" type="text"></td>
-            <td><input id="Subject 8" type="text"></td>
-            <td><input id="Subject 9" type="text"></td>
-        </tr>
+    </table>
+    <!-- Таблица для ввода данных -->
+    <table>
+      <h3> Subjects</h3>
+      <tr>
+        <th>Name</th>
+        <th>Level</th>
+        <th>Total Count Per Week</th>
+      </tr>
+      <tr>
+        <td><input id="Name 1" type="text"></td>
+        <td><input id="Level 1" type="text"></td>
+        <td><input id="TotalCountPerWeek 1" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 2" type="text"></td>
+        <td><input id="Level 2" type="text"></td>
+        <td><input id="TotalCountPerWeek 2" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 3" type="text"></td>
+        <td><input id="Level 3" type="text"></td>
+        <td><input id="TotalCountPerWeek 3" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 4" type="text"></td>
+        <td><input id="Level 4" type="text"></td>
+        <td><input id="TotalCountPerWeek 4" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 5" type="text"></td>
+        <td><input id="Level 5" type="text"></td>
+        <td><input id="TotalCountPerWeek 5" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 6" type="text"></td>
+        <td><input id="Level 6" type="text"></td>
+        <td><input id="TotalCountPerWeek 6" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 7" type="text"></td>
+        <td><input id="Level 7" type="text"></td>
+        <td><input id="TotalCountPerWeek 7" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 8" type="text"></td>
+        <td><input id="Level 8" type="text"></td>
+        <td><input id="TotalCountPerWeek 8" type="number"></td>
+      </tr>
+      <tr>
+        <td><input id="Name 9" type="text"></td>
+        <td><input id="Level 9" type="text"></td>
+        <td><input id="TotalCountPerWeek 9" type="number"></td>
+      </tr>
+      <!-- Добавьте больше строк, если нужно -->
     </table>
 
     <h3> Number of teachers: </h3>
@@ -93,15 +125,56 @@
           surname: document.getElementById("Surname").value,
           patronymic: document.getElementById("Patronymic").value,
           subjects: [
-            document.getElementById("Subject 1").value,
-            document.getElementById("Subject 2").value,
-            document.getElementById("Subject 3").value,
-            document.getElementById("Subject 4").value,
-            document.getElementById("Subject 5").value,
-            document.getElementById("Subject 6").value,
-            document.getElementById("Subject 7").value,
-            document.getElementById("Subject 8").value,
-            document.getElementById("Subject 9").value,
+            {
+              name: document.getElementById("Name 1").value,
+              level: document.getElementById("Level 1").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 1").value,
+            },
+            {
+              name: document.getElementById("Name 2").value,
+              level: document.getElementById("Level 2").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 2").value,
+            },
+            {
+              name: document.getElementById("Name 3").value,
+              level: document.getElementById("Level 3").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 3").value,
+            },
+            {
+              name: document.getElementById("Name 4").value,
+              level: document.getElementById("Level 4").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 4").value,
+            },
+            {
+              name: document.getElementById("Name 5").value,
+              level: document.getElementById("Level 5").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 5").value,
+            },
+            {
+              name: document.getElementById("Name 6").value,
+              level: document.getElementById("Level 6").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 6").value,
+            },
+            {
+              name: document.getElementById("Name 1").value,
+              level: document.getElementById("Level 1").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 1").value,
+            },
+            {
+              name: document.getElementById("Name 7").value,
+              level: document.getElementById("Level 7").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 7").value,
+            },
+            {
+              name: document.getElementById("Name 8").value,
+              level: document.getElementById("Level 8").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 8").value,
+            },
+            {
+              name: document.getElementById("Name 9").value,
+              level: document.getElementById("Level 9").value,
+              totalCountPerWeek: document.getElementById("TotalCountPerWeek 9").value,
+            },
           ],
         };
 
