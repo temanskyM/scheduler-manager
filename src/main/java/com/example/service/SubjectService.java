@@ -46,6 +46,6 @@ public class SubjectService {
     }
 
     public SubjectDto toModel(Subject subject) {
-        return new SubjectDto(subject.getName(), subject.getLevel(), subject.getTotalCountPerWeek());
+        return new SubjectDto(subject.getId(), subject.getName(), subject.getLevel(), subject.getTotalCountPerWeek());
     }
 }
