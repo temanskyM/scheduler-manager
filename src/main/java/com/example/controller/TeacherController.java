@@ -36,8 +36,8 @@ public class TeacherController {
     }
 
     @PostMapping
-    public Teacher createTeacher(@RequestBody TeacherCreateDto teacher) {
-        return teacherService.create(teacher);
+    public void createTeacher(@RequestBody TeacherCreateDto teacher) {
+        teacherService.create(teacher);
     }
 
     @PutMapping("/{id}")

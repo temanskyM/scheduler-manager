@@ -44,14 +44,17 @@ public class TeacherService {
         return teacherRepository.getReferenceById(id);
     }
 
-    public Teacher create(TeacherCreateDto createDto) {
+    public void create(TeacherCreateDto createDto) {
         Teacher entity = new Teacher();
         entity.setName(createDto.name());
         entity.setSurname(createDto.surname());
         entity.setPatronymic(createDto.patronymic());
+        entity.setTimeStart(createDto.timeStart());
+        entity.setTimeEnd(createDto.timeEnd());
 
         entity.setSubjects(createSubjects(createDto.subjects(), entity));
-        return teacherRepository.save(entity);
+        teacherRepository.save(entity);
+        return;
     }
 
     private Set<Subject> createSubjects(List<TeacherSubject> createDto, Teacher teacher) {
@@ -59,6 +62,7 @@ public class TeacherService {
         teachers.add(teacher);
 
         return createDto.stream()
+                .filter(it -> it.name() != null && it.name().isEmpty())
                 .map(it -> Subject.builder()
                         .teachers(teachers)
                         .level(it.level())

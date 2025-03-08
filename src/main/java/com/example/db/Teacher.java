@@ -3,6 +3,7 @@ package com.example.db;
 import java.time.LocalTime;
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,8 +36,8 @@ public class Teacher {
     
     private LocalTime timeStart;
     private LocalTime timeEnd;
-    
-    @ManyToMany
+
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
         name = "teacher_subjects",
         joinColumns = @JoinColumn(name = "teacher_id"),
