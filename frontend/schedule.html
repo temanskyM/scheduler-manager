@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js"></script>
+
+    <title>Generate Schedule</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f4f4f4;
+            flex-direction: column;
+        }
+
+        .bigcontainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-around;
+            width: 80%;
+        }
+
+        .column {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 30%;
+            text-align: center;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="bigcontainer">
+        <div class="container">
+            <div class="column">
+                <h2>Generate Teacher Schedule</h2>
+                <input type="text" placeholder="Teacher Name">
+                <button onclick="app.js.excelExport()"> Download </button>
+            </div>
+            <div class="column">
+                <h2>Generate Student Schedule</h2>
+                <input type="text" placeholder="Student Name">
+                <button  onclick="app.js.excelExport()"> Download </button>
+            </div>
+            <div class="column">
+                <h2>Generate Classroom Schedule</h2>
+                <input type="text" placeholder="Classroom Name">
+                <button onclick="app.js.excelExport()"> Download </button>
+            </div>
+        </div>
+      
+        <button onclick="location.href='index.html'">Back</button>
+    </div>  
+</body>
+</html>
