@@ -48,11 +48,15 @@
             <th>Name</th>
             <th>Surname</th>
             <th>Patronymic</th>
+            <th>Time start</th>
+            <th>Time end</th>
         </tr>
         <tr>
             <td><input id="Name" type="text"></td>
             <td><input id="Surname" type="text"></td>
             <td><input id="Patronymic" type="text"></td>
+            <td><input id="TimeStart" type="number"></td>
+            <td><input id="TimeEnd" type="number"></td>
         </tr>
     </table>
     <!-- Таблица для ввода данных -->
@@ -124,6 +128,8 @@
           name: document.getElementById("Name").value,
           surname: document.getElementById("Surname").value,
           patronymic: document.getElementById("Patronymic").value,
+          timeStart: document.getElementById("TimeStart").value,
+          timeEnd: document.getElementById("TimeEnd").value,
           subjects: [
             {
               name: document.getElementById("Name 1").value,
