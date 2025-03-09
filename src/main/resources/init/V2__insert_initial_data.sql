@@ -37,11 +37,11 @@ VALUES ('Mathematics', 2, 1),
 
 -- Insert teachers
 INSERT INTO teachers (name, surname, patronymic, time_start, time_end)
-VALUES ('John', 'Smith', 'Ivanov', '08:00:00', '16:00:00'),
+VALUES ('John', 'Smith', 'Ivanov', '09:00:00', '16:00:00'),
        ('Mary', 'Johnson', 'Olgova', '09:00:00', '17:00:00'),
        ('Robert', 'Williams', 'Martynov', '08:30:00', '16:30:00'),
        ('Sarah', 'Brown', 'Petrova', '09:30:00', '17:30:00'),
-       ('Michael', 'Davis', 'Dmitriev', '08:00:00', '16:00:00');
+       ('Michael', 'Davis', 'Dmitriev', '09:00:00', '16:00:00');
 
 -- Link teachers with subjects
 INSERT INTO teacher_subjects (teacher_id, subject_id)

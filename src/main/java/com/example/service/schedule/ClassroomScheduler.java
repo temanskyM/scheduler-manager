@@ -19,12 +19,12 @@ import com.example.dto.TimeSlot;
 import lombok.Getter;
 
 public class ClassroomScheduler {
-    private static final int LESSON_DURATION_MINUTES = 45;
-    private static final int BREAK_DURATION_MINUTES = 10;
-    private static final int TOTAL_SLOT_DURATION = LESSON_DURATION_MINUTES + BREAK_DURATION_MINUTES;
-    private static final int LESSONS_PER_DAY = 10;
-    private static final LocalTime SCHOOL_START_TIME = LocalTime.of(8, 0);
-    private static final LocalTime SCHOOL_END_TIME = LocalTime.of(17, 0);
+    public static final int LESSON_DURATION_MINUTES = 40;
+    public static final int BREAK_DURATION_MINUTES = 10;
+    public static final int TOTAL_SLOT_DURATION = LESSON_DURATION_MINUTES + BREAK_DURATION_MINUTES;
+    public static final int LESSONS_PER_DAY = 11;
+    public static final LocalTime SCHOOL_START_TIME = LocalTime.of(9, 0);
+    public static final LocalTime SCHOOL_END_TIME = LocalTime.of(17, 30);
 
     private final List<Student> students;
     private final List<Teacher> teachers;

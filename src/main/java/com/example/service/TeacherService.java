@@ -62,7 +62,7 @@ public class TeacherService {
         teachers.add(teacher);
 
         return createDto.stream()
-                .filter(it -> it.name() != null && it.name().isEmpty())
+                .filter(it -> it.name() != null && !it.name().isEmpty())
                 .map(it -> Subject.builder()
                         .teachers(teachers)
                         .level(it.level())

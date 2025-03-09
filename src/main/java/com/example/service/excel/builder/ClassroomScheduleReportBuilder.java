@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.example.db.Classroom;
 import com.example.dto.ScheduledLesson;
+import static com.example.service.schedule.ClassroomScheduler.LESSONS_PER_DAY;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -66,11 +67,6 @@ public class ClassroomScheduleReportBuilder extends AbstractExcelReportBuilder {
         Cell cell = row.createCell(day); // +1 because of time column
         cell.setCellValue(formatLessonInfo(lesson));
         cell.setCellStyle(dataStyle);
-    }
-
-    private int calculateTimeSlot(LocalDateTime lessonTime) {
-        return ((lessonTime.getHour() * 60 + lessonTime.getMinute() -
-                (SCHOOL_START_TIME.getHour() * 60 + SCHOOL_START_TIME.getMinute())) / TOTAL_SLOT_DURATION);
     }
 
     private String formatLessonInfo(ScheduledLesson lesson) {

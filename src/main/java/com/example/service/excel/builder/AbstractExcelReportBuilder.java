@@ -1,8 +1,12 @@
 package com.example.service.excel.builder;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
+import static com.example.service.schedule.ClassroomScheduler.LESSONS_PER_DAY;
+import static com.example.service.schedule.ClassroomScheduler.SCHOOL_START_TIME;
+import static com.example.service.schedule.ClassroomScheduler.TOTAL_SLOT_DURATION;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -18,11 +22,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public abstract class AbstractExcelReportBuilder {
     protected static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     protected static final DateTimeFormatter DAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE");
-    protected static final int LESSON_DURATION_MINUTES = 45;
-    protected static final int BREAK_DURATION_MINUTES = 10;
-    protected static final int TOTAL_SLOT_DURATION = LESSON_DURATION_MINUTES + BREAK_DURATION_MINUTES;
-    protected static final int LESSONS_PER_DAY = 10;
-    protected static final LocalDateTime SCHOOL_START_TIME = LocalDateTime.of(2000, 1, 1, 8, 0);
 
     protected final Workbook workbook;
     protected final CellStyle headerStyle;
@@ -92,7 +91,7 @@ public abstract class AbstractExcelReportBuilder {
     protected void createTimeSlots(Sheet sheet, int startRow) {
         for (int i = 0; i < LESSONS_PER_DAY; i++) {
             Row timeRow = sheet.createRow(startRow + i);
-            LocalDateTime time = SCHOOL_START_TIME.plusMinutes((long) i * TOTAL_SLOT_DURATION);
+            LocalTime time = SCHOOL_START_TIME.plusMinutes((long) i * TOTAL_SLOT_DURATION);
             Cell timeCell = timeRow.createCell(0);
             timeCell.setCellValue(time.format(TIME_FORMATTER));
             timeCell.setCellStyle(dataStyle);
@@ -127,5 +126,10 @@ public abstract class AbstractExcelReportBuilder {
         java.io.ByteArrayOutputStream outputStream = new java.io.ByteArrayOutputStream();
         workbook.write(outputStream);
         return outputStream.toByteArray();
+    }
+
+    protected int calculateTimeSlot(LocalDateTime lessonTime) {
+        return ((lessonTime.getHour() * 60 + lessonTime.getMinute() -
+                (SCHOOL_START_TIME.getHour() * 60 + SCHOOL_START_TIME.getMinute())) / TOTAL_SLOT_DURATION);
     }
 }
