@@ -13,6 +13,7 @@ import com.example.service.teacher.TeacherCreateDto;
 import com.example.service.teacher.TeacherSubject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,7 @@ public class TeacherService {
         return teacherRepository.getReferenceById(id);
     }
 
+    @Transactional
     public void create(TeacherCreateDto createDto) {
         Teacher entity = new Teacher();
         entity.setName(createDto.name());
